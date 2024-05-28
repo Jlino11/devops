@@ -1,7 +1,8 @@
 #! /bin/bash
 
 # Variables
-repo="The-DevOps-Journey-101"
+REPO="bootcamp-devops-2023"
+BRANCH='clase2-linux-bash'
 USER=$(id -u)
 
 # Colors
@@ -39,7 +40,13 @@ function test_and_enable ()
     echo -e "\n${LGREEN}Enable service $service${NC}"
     systemctl enable $service    
 }
-c
+
+function reload_service ()
+{
+    service=$1
+    systemctl reload $service
+}
+
 echo -e "\n${LBLUE}STAGE 1 [Init]"
 
 if [ "$USER" -ne 0 ] ;
@@ -67,3 +74,27 @@ check_package "$package_to_check"
 package_to_check="curl"
 check_package "$package_to_check"
 
+echo -e "\n${LBLUE}STAGE 2 [Init]${NC}"
+
+if [ ! -d "$REPO" ] ;
+then
+    echo -e "\n${LRED}The folder $REPO doesn't exist${NC}"
+    echo -e "\n${LGREEN}Downloading....${NC}"
+    git clone -b $BRANCH https://github.com/roxsross/$REPO.git
+    mv /var/www/html/index.html /var/www/html/index.html.bkp
+    cp -r $(find . -type d -name app-ecommerce)/* /var/www/html/
+    sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
+    echo 
+else
+    echo -e "\n${LGREEN}The folder $REPO already exist${NC}"
+    echo -e "\n${LGREEN}Doing pull request....${NC}"
+    cd $REPO
+    git pull origin
+    cp -u  $(find . -type d -name app-ecommerce)/ /var/www/html/
+    sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
+fi
+
+reload_service 'apache2'
+
+if [ curl ]
+ 
