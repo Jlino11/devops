@@ -94,7 +94,42 @@ else
     sed -i 's/172.20.1.101/localhost/g' /var/www/html/index.php
 fi
 
-reload_service 'apache2'
 
-if [ curl ]
+if [ ! -d "db-config-$REPO.sql" ] ;
+then 
+    echo -e "\n${LRED}The db configuration file doesn't exist!${NC}"
+    echo -e "\n${LGREEN}Creating....${NC}"
+    cat > db-config-$REPO.sql <<-EOL
+    CREATE DATABASE ecomdb;
+    CREATE USER 'ecomuser'@'localhost' IDENTIFIED BY 'ecompassword';
+    GRANT ALL PRIVILEGES ON *.* TO 'ecomuser'@'localhost';
+    FLUSH PRIVILEGES;
+EOL
+    echo -e "\n${LGREEN}DONE....${NC}"
+    echo -e "\n${LGREEN}Applying confing....${NC}"
+    mysql < db-config-$REPO.sql
+    echo -e "\n${LGREEN}DONE....${NC}"
+else
+    echo -e "\n${LGREEN}You already have the config file.${NC}"
+fi
+
+if [ ! -d " db-load-script-$REPO.sql" ] ;
+then 
+    echo -e "\n${LRED} The data file doesn't exist!${NC}"
+    echo -e "\n${LGREEN}Creating....${NC}"
+    cat > db-load-data-$REPO.sql <<-EOL
+    USE ecomdb;
+    CREATE TABLE products (id mediumint(8) unsigned NOT NULL auto_increment,Name varchar(255) default NULL,Price varchar(255) default NULL, ImageUrl varchar(255) default NULL,PRIMARY KEY (id)) AUTO_INCREMENT=1;
+    INSERT INTO products (Name,Price,ImageUrl) VALUES ("Laptop","100","c-1.png"),("Drone","200","c-2.png"),("VR","300","c-3.png"),("Tablet","50","c-5.png"),("Watch","90","c-6.png"),("Phone Covers","20","c-7.png"),("Phone","80","c-8.png"),("Laptop","150","c-4.png");
+EOL
+    echo -e "\n${LGREEN}DONE....${NC}"
+    echo -e "\n${LGREEN}Applying Data....${NC}"
+    mysql < db-load-data-$REPO.sql
+    echo -e "\n${LGREEN}DONE....${NC}"
+else
+    echo -e "\n${LGREEN}You already have the data file.${NC}"
+
+fi
+
+reload_service 'apache2'
  
