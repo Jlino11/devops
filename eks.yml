@@ -2,13 +2,13 @@
 apiVersion: v1
 kind: Namespace
 metadata:
-  name: default
+  name: testing
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: nginx-deployment
-  namespace: default
+  namespace: testing
   labels:
     app: nginx
 spec:
